@@ -1,0 +1,84 @@
+import requests
+from urllib.parse import urljoin
+from bs4 import BeautifulSoup
+
+def check_http_status(url):
+    try:
+        res = requests.get(url, timeout=10)
+        print(f" HTTP Status: {res.status_code}")
+        return res
+    except Exception as e:
+        print(f" Error reaching site: {e}")
+        return None
+
+def check_security_headers(response):
+    print("\n Checking security headers:")
+    headers = response.headers
+    security_headers = [
+        "Content-Security-Policy",
+        "X-Content-Type-Options",
+        "X-Frame-Options",
+        "Strict-Transport-Security",
+        "X-XSS-Protection",
+        "Referrer-Policy"
+    ]
+    for header in security_headers:
+        if header in headers:
+            print(f"     {header} present.")
+        else:
+            print(f {header} missing.")
+
+def extract_forms(url):
+    try:
+        soup = BeautifulSoup(requests.get(url).text, "html.parser")
+        return soup.find_all("form")
+    except:
+        return []
+
+def test_sqli_xss(url):
+    print("\n Testing basic SQLi/XSS injection on forms...")
+    forms = extract_forms(url)
+    payloads = {
+        "sqli": "' OR '1'='1",
+        "xss": "<script>alert('xss')</script>"
+    }
+
+    for i, form in enumerate(forms):
+        action = form.get("action")
+        method = form.get("method", "get").lower()
+        inputs = form.find_all("input")
+        data = {}
+
+        for input in inputs:
+            name = input.get("name")
+            if name:
+                data[name] = payloads["sqli"]
+
+        target_url = urljoin(url, action)
+        print(f"    Form {i+1}: {method.upper()} {target_url}")
+
+        if method == "post":
+            res = requests.post(target_url, data=data)
+        else:
+            res = requests.get(target_url, params=data)
+
+        if payloads["sqli"] in res.text or "sql" in res.text.lower():
+            print("  Possible SQL Injection reflection!")
+        if payloads["xss"] in res.text:
+            print("   Possible XSS reflection!")
+
+def run_scanner(url):
+    print(f"\n=== Scanning {url} ===\n")
+    if not url.startswith("http"):
+        url = "http://" + url
+
+    response = check_http_status(url)
+    if response:
+        check_security_headers(response)
+        test_sqli_xss(url)
+    print("\n END OF THE REPORT")
+
+if __name__ == "__main__":
+    target = input("Enter website URL to scan: ")
+    run_scanner(target)
+    
