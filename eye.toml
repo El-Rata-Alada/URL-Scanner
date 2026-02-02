@@ -1,9 +1,0 @@
-[project]
-name = "theeye"
-version = "0.1.0"
-description = "The Eye - Deep URL Intelligence Scanner"
-readme = "README.md"
-requires-python = ">=3.8"
-
-[project.scripts]
-theeye = "theeye.cli:main"
