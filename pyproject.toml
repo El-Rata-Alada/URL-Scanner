@@ -9,4 +9,5 @@ description = "Deep URL Intelligence Scanner (CLI)"
 requires-python = ">=3.8"
 
 [project.scripts]
-the-eye = "cli:main"
+theeye = "theeye.cli:main"
+
