@@ -1,10 +1,10 @@
 from datetime import datetime
 
-from modules import parser
-from modules import headers
-from modules import infra
-from modules import tech
-from modules import content
+from theeye.modules import parser
+from theeye.modules import headers
+from theeye.modules import infra
+from theeye.modules import fprint
+from theeye.modules import content
 
 
 def _safe_call(func, target):
