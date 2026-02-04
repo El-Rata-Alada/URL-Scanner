@@ -7,7 +7,7 @@ from modules import fprint
 from modules import content
 from modules import report
 
-
+"""
 def banner():
     print("""
 ████████╗██╗  ██╗███████╗             ███████╗██╗   ██╗███████╗
@@ -18,6 +18,7 @@ def banner():
    ╚═╝   ╚═╝  ╚═╝╚══════╝             ╚══════╝   ╚═╝   ╚══════╝
 """)
     print("The Eye is watching 👁️\n")
+    """
 
 
 def main():
