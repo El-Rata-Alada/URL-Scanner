@@ -21,7 +21,7 @@ def banner():
 
 
 def main():
-    banner()
+   # banner()
 
     argp = argparse.ArgumentParser(
         prog="theeye",
