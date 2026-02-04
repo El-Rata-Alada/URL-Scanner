@@ -1,11 +1,11 @@
 import argparse
 
-from modules import parser
-from modules import headers
-from modules import infra
-from modules import fprint
-from modules import content
-from modules import report
+from theeye.modules import parser
+from theeye.modules import headers
+from theeye.modules import infra
+from theeye.modules import fprint
+from theeye.modules import content
+from theeye.modules import report
 
 
 def banner():
