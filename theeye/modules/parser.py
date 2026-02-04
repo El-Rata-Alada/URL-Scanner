@@ -1,56 +1,70 @@
-import sys
-import urllib.parse
+from urllib.parse import urlparse
+import re
 
-
-def _check_dependency():
+def _check_tldextract():
     try:
-        import tldextract  # noqa: F401
-        return True
+        import tldextract
+        return tldextract
     except ImportError:
         print("[!] Missing dependency: tldextract")
-        print("[+] Install it using:")
-        print("    pip install tldextract")
-        return False
+        print("    Install using: pip install tldextract")
+        return None
 
 
-def parse_url(url: str) -> dict:
-    import tldextract
+def _is_ip(value: str) -> bool:
+    ip_regex = r"^(?:\d{1,3}\.){3}\d{1,3}$"
+    return re.match(ip_regex, value) is not None
 
-    parsed = urllib.parse.urlparse(url)
-    extracted = tldextract.extract(url)
 
-    return {
-        "scheme": parsed.scheme or None,
-        "host": parsed.hostname,
-        "port": parsed.port,
-        "path": parsed.path or "/",
-        "query": parsed.query or None,
-        "fragment": parsed.fragment or None,
-        "subdomain": extracted.subdomain or None,
-        "domain": extracted.domain or None,
-        "suffix": extracted.suffix or None,
-        "registered_domain": extracted.registered_domain or None,
+def main(target: str) -> dict:
+    result = {
+        "scheme": None,
+        "domain": None,
+        "subdomain": None,
+        "tld": None,
+        "port": None,
+        "path": None,
+        "query": None,
+        "fragment": None,
+        "is_ip": False
     }
 
+    if not target or not isinstance(target, str):
+        return result
 
-def main():
-    if not _check_dependency():
-        return 0
+    if not target.startswith(("http://", "https://")):
+        target = "http://" + target
 
-    if len(sys.argv) < 2:
-        print("[!] Usage: theeye <url>")
-        return 0
+    parsed = urlparse(target)
 
-    url = sys.argv[1]
+    result["scheme"] = parsed.scheme
+    result["path"] = parsed.path or "/"
+    result["query"] = parsed.query
+    result["fragment"] = parsed.fragment
+    result["port"] = parsed.port
+
+    hostname = parsed.hostname
+    if not hostname:
+        return result
+
+    result["is_ip"] = _is_ip(hostname)
+
+    if result["is_ip"]:
+        result["domain"] = hostname
+        return result
+
+    tldextract = _check_tldextract()
+    if not tldextract:
+        return result
 
     try:
-        result = parse_url(url)
-    except Exception as e:
-        print(f"[!] Failed to parse URL: {e}")
-        return 0
+        extracted = tldextract.extract(hostname)
+    except Exception:
+        print("[!] No internet connection")
+        return result
 
-    print("\n[+] URL Parsing Result\n" + "-" * 25)
-    for key, value in result.items():
-        print(f"{key:<20}: {value}")
+    result["domain"] = extracted.domain
+    result["subdomain"] = extracted.subdomain or None
+    result["tld"] = extracted.suffix or None
 
-    return 0
+    return result
