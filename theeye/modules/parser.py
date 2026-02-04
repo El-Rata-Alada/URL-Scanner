@@ -1,43 +1,56 @@
-from urllib.parse import urlparse, parse_qs
-import tldextract
+import sys
+import urllib.parse
 
 
-def _normalize_url(target: str) -> str:
-    target = target.strip()
-    if "://" not in target:
-        target = "http://" + target
-    return target
+def _check_dependency():
+    try:
+        import tldextract  # noqa: F401
+        return True
+    except ImportError:
+        print("[!] Missing dependency: tldextract")
+        print("[+] Install it using:")
+        print("    pip install tldextract")
+        return False
 
 
-def main(target: str) -> dict:
-    if not target or not isinstance(target, str):
-        raise ValueError("Invalid target")
+def parse_url(url: str) -> dict:
+    import tldextract
 
-    normalized = _normalize_url(target)
-    parsed = urlparse(normalized)
-
-    host = parsed.hostname or ""
-
-    ext = tldextract.extract(host)
-    subdomain = ext.subdomain
-    registered_domain = (
-        f"{ext.domain}.{ext.suffix}" if ext.suffix else ext.domain
-    )
-
-    query_params = parse_qs(parsed.query)
+    parsed = urllib.parse.urlparse(url)
+    extracted = tldextract.extract(url)
 
     return {
-        "input": target,
-        "normalized_url": normalized,
-        "scheme": parsed.scheme,
-        "host": host,
-        "subdomain": subdomain,
-        "domain": registered_domain,
+        "scheme": parsed.scheme or None,
+        "host": parsed.hostname,
         "port": parsed.port,
-        "path": parsed.path,
-        "path_segments": [p for p in parsed.path.split("/") if p],
-        "query_string": parsed.query,
-        "query_params": query_params,
-        "param_count": len(query_params),
-        "fragment": parsed.fragment,
+        "path": parsed.path or "/",
+        "query": parsed.query or None,
+        "fragment": parsed.fragment or None,
+        "subdomain": extracted.subdomain or None,
+        "domain": extracted.domain or None,
+        "suffix": extracted.suffix or None,
+        "registered_domain": extracted.registered_domain or None,
     }
+
+
+def main():
+    if not _check_dependency():
+        return 0
+
+    if len(sys.argv) < 2:
+        print("[!] Usage: theeye <url>")
+        return 0
+
+    url = sys.argv[1]
+
+    try:
+        result = parse_url(url)
+    except Exception as e:
+        print(f"[!] Failed to parse URL: {e}")
+        return 0
+
+    print("\n[+] URL Parsing Result\n" + "-" * 25)
+    for key, value in result.items():
+        print(f"{key:<20}: {value}")
+
+    return 0
