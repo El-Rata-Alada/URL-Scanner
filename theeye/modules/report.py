@@ -53,7 +53,7 @@ def main(target: str) -> str:
     domain = parsed.get("domain") if parsed else None
     infra_data = _safe_call(infra.main, domain) if domain else {}
 
-    tech_data = _safe_call(tech.main, target)
+    #tech_data = _safe_call(tech.main, target
     content_data = _safe_call(content.main, target)
 
     # -------- Write report --------
@@ -63,7 +63,7 @@ def main(target: str) -> str:
         f.write(f"Target     : {target}\n")
         f.write(f"Generated  : {timestamp}\n")
 
-        _write_section(f, "Parsed Target", parsed)
+        _write_section(f, "Parsed Target", parsed_data)
         _write_section(f, "HTTP & Security Headers", headers_data)
         _write_section(f, "Infrastructure Intelligence", infra_data)
         _write_section(f, "Technology Fingerprinting", tech_data)
